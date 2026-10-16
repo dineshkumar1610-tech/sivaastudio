@@ -53,29 +53,29 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 w-full max-w-full z-50 transition-all duration-500 ${
           scrolled
             ? "bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
             : "bg-gradient-to-b from-black/90 via-black/55 to-transparent pb-3"
         }`}
       >
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-12 flex items-center justify-between h-20">
-          <div className="flex items-center gap-2.5">
+        <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-12 flex items-center justify-between h-16 sm:h-20">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             {/* Logo — click to zoom */}
             <button
               onClick={() => setLogoZoom(true)}
               aria-label="View logo"
-              className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary/60 transition-transform duration-300 hover:scale-110"
+              className="rounded-full shrink-0 focus:outline-none focus:ring-2 focus:ring-primary/60 transition-transform duration-300 hover:scale-105"
             >
               <Image
                 src="/assets/sivaa logo.png"
                 alt="Sivaa Studio Logo"
-                width={38}
-                height={38}
-                className="rounded-full object-cover"
+                width={36}
+                height={36}
+                className="rounded-full object-cover shrink-0 w-9 h-9 sm:w-10 sm:h-10"
               />
             </button>
-            <Link href="/" className="font-display text-xl tracking-wide text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+            <Link href="/" className="font-display text-lg sm:text-xl tracking-wide text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] truncate whitespace-nowrap">
               Sivaa Studio
             </Link>
           </div>
@@ -98,12 +98,12 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 shrink-0 md:hidden ml-auto">
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden text-white flex flex-col gap-1.5 focus:outline-none p-1"
-              aria-label="Menu"
+              className="text-white flex flex-col items-center justify-center w-10 h-10 gap-1.5 focus:outline-none p-2 rounded-lg hover:bg-white/10 active:bg-white/20 transition-colors"
+              aria-label="Toggle Menu"
             >
               <span className={`block w-6 h-[2px] bg-white transition-transform duration-300 ${mobileOpen ? "rotate-45 translate-y-[8px]" : ""}`} />
               <span className={`block w-6 h-[2px] bg-white transition-opacity duration-300 ${mobileOpen ? "opacity-0" : ""}`} />

@@ -29,7 +29,6 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5,
   themeColor: "#0a0a0a",
 };
 
@@ -39,10 +38,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${instrument.variable}`}>
-      <body className="min-h-screen bg-background text-foreground antialiased font-sans">
+    <html lang="en" className={`${playfair.variable} ${instrument.variable} overflow-x-hidden max-w-full`}>
+      <body className="min-h-screen bg-background text-foreground antialiased font-sans overflow-x-hidden max-w-full w-full relative">
         <Navbar />
-        <main>{children}</main>
+        <main className="overflow-x-hidden max-w-full w-full">{children}</main>
         <Footer />
       </body>
     </html>

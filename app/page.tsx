@@ -74,15 +74,15 @@ export default function Index() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/15 to-black/50" />
           </div>
         ))}
-        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-6 max-w-4xl mx-auto">
+        <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4 sm:px-6 max-w-4xl mx-auto w-full">
           <span
-            className="text-primary text-xs md:text-sm font-bold tracking-[0.35em] uppercase mb-5 opacity-0 animate-fade-in-up bg-black/60 px-6 py-2 rounded-full border border-primary/50 backdrop-blur-md shadow-2xl"
+            className="text-primary text-[10px] sm:text-xs md:text-sm font-bold tracking-[0.18em] sm:tracking-[0.35em] uppercase mb-5 opacity-0 animate-fade-in-up bg-black/60 px-4 sm:px-6 py-2 rounded-full border border-primary/50 backdrop-blur-md shadow-2xl max-w-full text-center"
             style={{ textShadow: "0 2px 10px rgba(0,0,0,0.9)" }}
           >
             Your Story, Told Through Our Lens
           </span>
           <h1
-            className="font-display text-white text-[clamp(2.8rem,8.5vw,6.5rem)] font-normal leading-[1.1] mb-6 opacity-0 animate-fade-in-up"
+            className="font-display text-white text-[clamp(2.5rem,8vw,6.5rem)] font-normal leading-[1.1] mb-6 opacity-0 animate-fade-in-up max-w-full break-words"
             style={{
               animationDelay: "0.2s",
               textShadow: "0 4px 20px rgba(0,0,0,0.95), 0 8px 35px rgba(0,0,0,0.9)",
@@ -91,7 +91,7 @@ export default function Index() {
             Sivaa Studio
           </h1>
           <p
-            className="text-white font-medium text-lg md:text-2xl max-w-2xl tracking-wide mb-10 opacity-0 animate-fade-in-up"
+            className="text-white font-medium text-base sm:text-lg md:text-2xl max-w-2xl tracking-wide mb-10 opacity-0 animate-fade-in-up px-2"
             style={{
               animationDelay: "0.4s",
               textShadow: "0 2px 12px rgba(0,0,0,0.95)",
@@ -102,7 +102,7 @@ export default function Index() {
           <div className="flex gap-4 opacity-0 animate-fade-in-up" style={{ animationDelay: "0.6s" }}>
             <Link
               href="/collections"
-              className="bg-primary text-primary-foreground font-bold px-10 py-4 text-sm tracking-widest uppercase hover:bg-primary/90 hover:scale-105 transition-all duration-300 rounded-sm border border-primary/60 shadow-2xl"
+              className="bg-primary text-primary-foreground font-bold px-8 sm:px-10 py-3.5 sm:py-4 text-xs sm:text-sm tracking-widest uppercase hover:bg-primary/90 hover:scale-105 transition-all duration-300 rounded-sm border border-primary/60 shadow-2xl"
               style={{
                 boxShadow: "0 4px 25px rgba(0,0,0,0.7), 0 0 20px hsl(var(--primary) / 0.5)",
               }}
@@ -134,7 +134,7 @@ export default function Index() {
       </section>
 
       {/* About / Intro Section */}
-      <section className="py-24 px-6 lg:px-12 bg-card/30 backdrop-blur-sm">
+      <section className="py-24 px-6 lg:px-12 bg-card/30 backdrop-blur-sm overflow-hidden">
         <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="reveal">
             <p className="text-primary text-sm tracking-widest uppercase mb-4">Our Heritage</p>
@@ -150,8 +150,8 @@ export default function Index() {
               </p>
             </div>
           </div>
-          <div className="reveal relative aspect-square lg:aspect-auto h-full min-h-[500px]">
-             <div className="absolute inset-0 border border-primary/20 -translate-x-4 translate-y-4" />
+          <div className="reveal relative aspect-square lg:aspect-auto h-full min-h-[400px] sm:min-h-[500px]">
+             <div className="hidden sm:block absolute inset-0 border border-primary/20 -translate-x-4 translate-y-4" />
              <Image
                src="/assets/sivaa ss.png"
                alt="Sivaa Studio Photographer"
