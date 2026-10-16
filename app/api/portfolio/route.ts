@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { supabase } from "@/lib/supabase";
+import { getServiceSupabase, supabaseBucket, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -21,21 +21,8 @@ interface PortfolioData {
 
 const dataFilePath = path.join(process.cwd(), "data", "portfolio.json");
 
-// Read portfolio from Supabase Storage first, fallback to local bundled file
-async function getPortfolioData(): Promise<PortfolioData> {
-  try {
-    const { data: fileData, error } = await supabase.storage
-      .from("Sivaa gallery")
-      .download("metadata/portfolio.json");
-
-    if (!error && fileData) {
-      const text = await fileData.text();
-      return JSON.parse(text);
-    }
-  } catch (err) {
-    console.warn("Could not fetch portfolio from Supabase storage, using fallback:", err);
-  }
-
+// Read portfolio from local file
+function getPortfolioData(): PortfolioData {
   try {
     if (fs.existsSync(dataFilePath)) {
       const content = fs.readFileSync(dataFilePath, "utf8");
@@ -59,33 +46,48 @@ async function getPortfolioData(): Promise<PortfolioData> {
   };
 }
 
-// Save portfolio to Supabase Storage, and safely attempt local disk write if writable
-async function savePortfolioData(data: PortfolioData): Promise<void> {
-  try {
-    const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf8");
-    await supabase.storage
-      .from("Sivaa gallery")
-      .upload("metadata/portfolio.json", jsonBuffer, {
-        contentType: "application/json",
-        upsert: true,
-      });
-  } catch (sbErr) {
-    console.warn("Could not persist portfolio to Supabase storage:", sbErr);
-  }
-
+// Save portfolio to local file
+function savePortfolioData(data: PortfolioData): void {
   try {
     const dir = path.dirname(dataFilePath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
     fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf8");
-  } catch {
-    // Read-only filesystem on Vercel — safe to ignore
+  } catch (err) {
+    console.warn("Could not write portfolio data to disk:", err);
   }
 }
 
 export async function GET() {
-  const data = await getPortfolioData();
+  if (isSupabaseConfigured()) {
+    try {
+      const supabase = getServiceSupabase();
+      if (supabase) {
+        const [catRes, worksRes] = await Promise.all([
+          supabase.from("categories").select("name").order("name"),
+          supabase.from("portfolio_works").select("*").order("created_at", { ascending: false }),
+        ]);
+
+        if (!catRes.error && !worksRes.error && worksRes.data && worksRes.data.length > 0) {
+          const categories = (catRes.data || []).map((c: { name: string }) => c.name);
+          const works: WorkItem[] = worksRes.data.map((w: { id: string; src: string; title: string; year: string; category: string; tall: boolean }) => ({
+            id: w.id,
+            src: w.src,
+            title: w.title,
+            year: w.year,
+            cat: w.category,
+            tall: Boolean(w.tall),
+          }));
+          return NextResponse.json({ categories, works });
+        }
+      }
+    } catch (e) {
+      console.warn("Supabase fetch failed, falling back to local file:", e);
+    }
+  }
+
+  const data = getPortfolioData();
   return NextResponse.json(data);
 }
 
@@ -93,7 +95,8 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action } = body;
-    const data = await getPortfolioData();
+    const data = getPortfolioData();
+    const supabase = isSupabaseConfigured() ? getServiceSupabase() : null;
 
     if (action === "add_works") {
       const { works: newWorks, category } = body;
@@ -105,10 +108,34 @@ export async function POST(request: Request) {
       if (cat && !data.categories.includes(cat)) {
         data.categories.push(cat);
         data.categories.sort((a: string, b: string) => a.localeCompare(b));
+        if (supabase) {
+          try {
+            await supabase.from("categories").upsert({ name: cat }, { onConflict: "name" });
+          } catch (e) {
+            console.warn("Supabase add category warning:", e);
+          }
+        }
       }
       // Prepend new works
       data.works = [...newWorks, ...data.works];
-      await savePortfolioData(data);
+      savePortfolioData(data);
+
+      if (supabase) {
+        const rows = newWorks.map((w: WorkItem) => ({
+          id: w.id,
+          src: w.src,
+          title: w.title,
+          category: w.cat,
+          year: w.year,
+          tall: Boolean(w.tall),
+        }));
+        try {
+          await supabase.from("portfolio_works").upsert(rows, { onConflict: "id" });
+        } catch (e) {
+          console.warn("Supabase add works warning:", e);
+        }
+      }
+
       return NextResponse.json({ success: true, works: data.works, categories: data.categories });
     }
 
@@ -121,7 +148,14 @@ export async function POST(request: Request) {
       if (!data.categories.includes(trimmed)) {
         data.categories.push(trimmed);
         data.categories.sort((a: string, b: string) => a.localeCompare(b));
-        await savePortfolioData(data);
+        savePortfolioData(data);
+        if (supabase) {
+          try {
+            await supabase.from("categories").upsert({ name: trimmed }, { onConflict: "name" });
+          } catch (e) {
+            console.warn("Supabase add category warning:", e);
+          }
+        }
       }
       return NextResponse.json({ success: true, categories: data.categories });
     }
@@ -137,14 +171,33 @@ export async function POST(request: Request) {
       data.works = data.works.map((w: WorkItem) =>
         w.cat === oldName ? { ...w, cat: trimmedNew } : w
       );
-      await savePortfolioData(data);
+      savePortfolioData(data);
+
+      if (supabase) {
+        try {
+          await Promise.all([
+            supabase.from("categories").update({ name: trimmedNew }).eq("name", oldName),
+            supabase.from("portfolio_works").update({ category: trimmedNew }).eq("category", oldName),
+          ]);
+        } catch (e) {
+          console.warn("Supabase rename category warning:", e);
+        }
+      }
+
       return NextResponse.json({ success: true, categories: data.categories, works: data.works });
     }
 
     if (action === "delete_category") {
       const { name } = body;
       data.categories = data.categories.filter((c: string) => c !== name);
-      await savePortfolioData(data);
+      savePortfolioData(data);
+      if (supabase) {
+        try {
+          await supabase.from("categories").delete().eq("name", name);
+        } catch (e) {
+          console.warn("Supabase delete category warning:", e);
+        }
+      }
       return NextResponse.json({ success: true, categories: data.categories, works: data.works });
     }
 
@@ -152,20 +205,42 @@ export async function POST(request: Request) {
       const { id, src } = body;
       data.works = data.works.filter((w: WorkItem) => w.id !== id && w.src !== src);
 
-      // If Supabase storage file, delete from Supabase Storage
-      if (src && src.includes("/storage/v1/object/public/Sivaa gallery/")) {
+      // If it's a local file in public/uploads, delete it from disk
+      if (src && src.startsWith("/uploads/")) {
         try {
-          const parts = src.split("/storage/v1/object/public/Sivaa gallery/");
-          if (parts[1]) {
-            const storagePath = decodeURIComponent(parts[1]);
-            await supabase.storage.from("Sivaa gallery").remove([storagePath]);
+          const localFilePath = path.join(process.cwd(), "public", src);
+          if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
           }
         } catch (e) {
-          console.error("Failed to delete from Supabase storage:", e);
+          console.warn("Could not delete local file:", e);
         }
       }
 
-      await savePortfolioData(data);
+      // If it's hosted in Supabase Storage, delete from bucket & table
+      if (supabase) {
+        if (id) {
+          try {
+            await supabase.from("portfolio_works").delete().eq("id", id);
+          } catch (e) {
+            console.warn("Supabase delete work table warning:", e);
+          }
+        }
+        if (src && src.includes(".supabase.co/storage/v1/object/public/")) {
+          try {
+            const parts = src.split("/storage/v1/object/public/")[1]?.split("/");
+            if (parts && parts.length >= 2) {
+              const bucketName = parts[0];
+              const filePath = decodeURIComponent(parts.slice(1).join("/"));
+              await supabase.storage.from(bucketName).remove([filePath]);
+            }
+          } catch (supDelErr) {
+            console.warn("Could not delete from Supabase storage:", supDelErr);
+          }
+        }
+      }
+
+      savePortfolioData(data);
       return NextResponse.json({ success: true, works: data.works });
     }
 

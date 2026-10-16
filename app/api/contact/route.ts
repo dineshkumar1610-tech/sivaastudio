@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
 
 // Fire-and-forget: sends to Google Sheet in background, never blocks the user response
 function sendToGoogleSheet(webhookUrl: string, payload: Record<string, string>) {
@@ -32,7 +31,7 @@ export async function POST(request: Request) {
       process.env.GOOGLE_SHEET_WEBAPP_URL ||
       "https://script.google.com/macros/s/AKfycbyFjknqPXWMl6_g1tVrIDFEmKONvFEDdi4LIXJ73LQ2GD9flnBsk0Fc1CMRNN6YPpBL/exec";
 
-    // 1. Fire-and-forget to Google Sheet — does NOT block the response
+    // Fire-and-forget to Google Sheet — does NOT block the response
     if (webhookUrl) {
       // In Google Sheets, a leading '+' is parsed as an arithmetic formula which results in #ERROR!
       // Prefixing with a single quote (') forces Google Sheets to treat it as plain text.
@@ -47,23 +46,6 @@ export async function POST(request: Request) {
         message: message || "",
         timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
       });
-    }
-
-    // 2. Optionally store in Supabase inquiries table if exists
-    try {
-      await supabase.from("inquiries").insert([
-        {
-          name,
-          email,
-          phone,
-          category1,
-          category2,
-          message,
-          created_at: new Date().toISOString(),
-        },
-      ]);
-    } catch {
-      // Ignored if table does not exist
     }
 
     // Respond immediately — no waiting for Google Sheet

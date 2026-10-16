@@ -21,7 +21,6 @@ import {
   EyeOff,
 } from "lucide-react";
 import { generateAiTitle } from "@/lib/aiTitle";
-import { supabase } from "@/lib/supabase";
 
 interface WorkItem {
   id?: string;
@@ -41,7 +40,14 @@ function isCategoryMatch(itemCat: string, targetCat: string): boolean {
   if (a === b) return true;
   const cleanA = a.replace(/\s*(shooting|shoot)\s*/g, "");
   const cleanB = b.replace(/\s*(shooting|shoot)\s*/g, "");
-  return cleanA === cleanB;
+  if (cleanA === cleanB) return true;
+  if (
+    (cleanA === "seemantham" && cleanB === "sreemantham") ||
+    (cleanA === "sreemantham" && cleanB === "seemantham")
+  ) {
+    return true;
+  }
+  return false;
 }
 
 // ── AI-generated captions per category ──────────────────────────────────────
@@ -62,6 +68,8 @@ const AI_CAPTIONS: Record<string, string> = {
     "Your love story deserves a prologue as beautiful as the wedding itself. Our pre-wedding sessions blend cinematic storytelling with breathtaking locations to create images full of genuine emotion. Relive the anticipation, the laughter, and the promise.",
   "Sreemantham":
     "Sreemantham is a sacred celebration of new life and maternal blessings, rich in culture and tradition. We document every ritual, every prayer, and every joyful moment with reverence and artistry. These images honour a heritage that connects generations.",
+  "Seemantham":
+    "Seemantham is a sacred celebration of new life and maternal blessings, rich in culture and tradition. We document every ritual, every prayer, and every joyful moment with reverence and artistry. These images honour a heritage that connects generations.",
   "Wedding":
     "A wedding is the most exquisite chapter of your life story, and we are honoured to document it. From sacred rituals to spontaneous tears of joy, our lenses capture every emotion with cinematic grace. Your day, preserved as timeless fine art forever.",
   "Wedding Shooting":
@@ -414,86 +422,48 @@ export default function Work() {
     }
   };
 
-  // Upload files handler — uploads directly from browser to Supabase Storage
-  // (bypasses Vercel serverless timeout & sharp binary issues)
+  // Upload files handler — sends files via multipart FormData to /api/upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedFiles.length === 0) return;
 
     setUploading(true);
-    const uploadedWorks: WorkItem[] = [];
 
     try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
-        const safeBaseName = file.name
-          .replace(/\.[^/.]+$/, "")
-          .replace(/[^a-zA-Z0-9_-]/g, "_");
-        const ext = file.name.includes(".") ? file.name.split(".").pop() || "jpg" : "jpg";
-        const filename = `${Date.now()}-${i}-${safeBaseName}.${ext}`;
-        const safeCatFolder = selectedAdminCategory.replace(/[^a-zA-Z0-9_-]/g, "_");
-        const storagePath = `${safeCatFolder}/${filename}`;
-
-        // Upload directly from browser to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from("Sivaa gallery")
-          .upload(storagePath, file, {
-            contentType: file.type || "image/jpeg",
-            upsert: true,
-          });
-
-        if (uploadError) {
-          throw new Error(`Upload failed: ${uploadError.message}`);
-        }
-
-        // Get public URL
-        const { data: publicData } = supabase.storage
-          .from("Sivaa gallery")
-          .getPublicUrl(storagePath);
-
-        const src = publicData?.publicUrl || storagePath;
-        const title =
-          uploadTitle && selectedFiles.length === 1 && uploadTitle.trim()
-            ? uploadTitle.trim()
-            : generateAiTitle(selectedAdminCategory, file.name);
-
-        const newWork: WorkItem = {
-          id: `up-${Date.now()}-${i}`,
-          src,
-          title: title || `${selectedAdminCategory} #${i + 1}`,
-          year: new Date().getFullYear().toString(),
-          cat: selectedAdminCategory,
-          tall: false,
-        };
-        uploadedWorks.push(newWork);
+      const formData = new FormData();
+      for (const file of selectedFiles) {
+        formData.append("files", file);
+      }
+      formData.append("category", selectedAdminCategory);
+      formData.append("year", new Date().getFullYear().toString());
+      if (uploadTitle.trim() && selectedFiles.length === 1) {
+        formData.append("title", uploadTitle.trim());
       }
 
-      // Save metadata via lightweight API route (no file processing, just JSON update)
-      const res = await fetch("/api/portfolio", {
+      const res = await fetch("/api/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "add_works",
-          works: uploadedWorks,
-          category: selectedAdminCategory,
-        }),
+        body: formData,
       });
 
       const rawText = await res.text();
-      let data: { works?: WorkItem[]; categories?: string[]; error?: string } | null = null;
+      let data: { success?: boolean; uploadedWorks?: WorkItem[]; allWorks?: WorkItem[]; categories?: string[]; error?: string } | null = null;
       try { data = JSON.parse(rawText); } catch { /* ignore */ }
 
-      if (data?.works) {
-        setWorks(data.works);
-      } else {
-        setWorks((prev) => [...uploadedWorks, ...prev]);
+      if (!res.ok || data?.error) {
+        throw new Error(data?.error || "Upload failed");
+      }
+
+      if (data?.allWorks) {
+        setWorks(data.allWorks);
+      } else if (data?.uploadedWorks) {
+        setWorks((prev) => [...(data!.uploadedWorks as WorkItem[]), ...prev]);
       }
       if (data?.categories) setCategories(data.categories);
 
       setUploadModalOpen(false);
       setSelectedFiles([]);
       setUploadTitle("");
-      showStatus(`${uploadedWorks.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
+      showStatus(`${selectedFiles.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed. Please check your connection.";
       showStatus(msg, "error");

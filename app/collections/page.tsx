@@ -21,7 +21,14 @@ function isCategoryMatch(itemCat: string, targetCat: string): boolean {
   if (a === b) return true;
   const cleanA = a.replace(/\s*(shooting|shoot)\s*/g, "");
   const cleanB = b.replace(/\s*(shooting|shoot)\s*/g, "");
-  return cleanA === cleanB;
+  if (cleanA === cleanB) return true;
+  if (
+    (cleanA === "seemantham" && cleanB === "sreemantham") ||
+    (cleanA === "sreemantham" && cleanB === "seemantham")
+  ) {
+    return true;
+  }
+  return false;
 }
 
 const DEFAULT_DESCRIPTIONS: Record<string, string> = {
@@ -36,6 +43,7 @@ const DEFAULT_DESCRIPTIONS: Record<string, string> = {
   "Fashion Shoot": "Where haute couture meets expressive visual storytelling",
   "Modeling": "Editorial precision and dramatic lighting crafting iconic imagery",
   "Sreemantham": "Traditional blessings and sacred heritage honoring new beginnings",
+  "Seemantham": "Traditional blessings and sacred heritage honoring new beginnings",
 };
 
 function formatCategoryTitle(cat: string): string {
@@ -43,6 +51,7 @@ function formatCategoryTitle(cat: string): string {
   const lower = cat.trim().toLowerCase();
   if (lower === "engagement shoot") return "Engagement shoot";
   if (lower === "profile shoot") return "Profile shoot";
+  if (lower === "baby shoot") return "Baby shoot";
   return cat.charAt(0).toUpperCase() + cat.slice(1);
 }
 
@@ -71,6 +80,9 @@ const COVER_OVERRIDES: Record<string, string> = {
   "Pre-Wedding": "/assets/pre-wedding/SSS01607.JPG.jpeg",
   "Pre-wedding shooting": "/assets/pre-wedding/SSS01607.JPG.jpeg",
   "Pre-wedding shoot": "/assets/pre-wedding/SSS01607.JPG.jpeg",
+  "Wedding": "/assets/wedding/DSC07642.JPG.jpeg",
+  "Seemantham": "/assets/maternity shooting/SSS09685.JPG.jpeg",
+  "Sreemantham": "/assets/maternity shooting/SSS09685.JPG.jpeg",
 };
 
 export default function Collections() {
