@@ -19,15 +19,30 @@ interface PortfolioData {
 
 const dataFilePath = path.join(process.cwd(), "data", "portfolio.json");
 
-function getPortfolioData() {
+// Read portfolio from Supabase Storage first, fallback to local bundled file
+async function getPortfolioData(): Promise<PortfolioData> {
+  try {
+    const { data: fileData, error } = await supabase.storage
+      .from("gallery")
+      .download("metadata/portfolio.json");
+
+    if (!error && fileData) {
+      const text = await fileData.text();
+      return JSON.parse(text);
+    }
+  } catch (err) {
+    console.warn("Could not fetch portfolio from Supabase storage, using fallback:", err);
+  }
+
   try {
     if (fs.existsSync(dataFilePath)) {
       const content = fs.readFileSync(dataFilePath, "utf8");
       return JSON.parse(content);
     }
   } catch (error) {
-    console.error("Error reading portfolio data:", error);
+    console.error("Error reading local portfolio data:", error);
   }
+
   return {
     categories: [
       "Baby Shoot",
@@ -36,22 +51,39 @@ function getPortfolioData() {
       "Modeling",
       "Pre-Wedding",
       "Sreemantham",
-      "Wedding Shooting"
+      "Wedding Shooting",
     ],
-    works: []
+    works: [],
   };
 }
 
-function savePortfolioData(data: PortfolioData) {
-  const dir = path.dirname(dataFilePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+// Save portfolio to Supabase Storage, and safely attempt local disk write if writable
+async function savePortfolioData(data: PortfolioData): Promise<void> {
+  try {
+    const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf8");
+    await supabase.storage
+      .from("gallery")
+      .upload("metadata/portfolio.json", jsonBuffer, {
+        contentType: "application/json",
+        upsert: true,
+      });
+  } catch (sbErr) {
+    console.warn("Could not persist portfolio to Supabase storage:", sbErr);
   }
-  fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf8");
+
+  try {
+    const dir = path.dirname(dataFilePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf8");
+  } catch {
+    // Read-only filesystem on Vercel — safe to ignore
+  }
 }
 
 export async function GET() {
-  const data = getPortfolioData();
+  const data = await getPortfolioData();
   return NextResponse.json(data);
 }
 
@@ -59,7 +91,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action } = body;
-    const data = getPortfolioData();
+    const data = await getPortfolioData();
 
     if (action === "add_category") {
       const { name } = body;
@@ -70,7 +102,7 @@ export async function POST(request: Request) {
       if (!data.categories.includes(trimmed)) {
         data.categories.push(trimmed);
         data.categories.sort((a: string, b: string) => a.localeCompare(b));
-        savePortfolioData(data);
+        await savePortfolioData(data);
       }
       return NextResponse.json({ success: true, categories: data.categories });
     }
@@ -81,23 +113,19 @@ export async function POST(request: Request) {
       if (!trimmedNew || !oldName) {
         return NextResponse.json({ error: "Both oldName and newName are required" }, { status: 400 });
       }
-      // Rename in categories list
       data.categories = data.categories.map((c: string) => (c === oldName ? trimmedNew : c));
       data.categories.sort((a: string, b: string) => a.localeCompare(b));
-      // Rename in all works that use the old category name
       data.works = data.works.map((w: WorkItem) =>
         w.cat === oldName ? { ...w, cat: trimmedNew } : w
       );
-      savePortfolioData(data);
+      await savePortfolioData(data);
       return NextResponse.json({ success: true, categories: data.categories, works: data.works });
     }
 
     if (action === "delete_category") {
       const { name } = body;
       data.categories = data.categories.filter((c: string) => c !== name);
-      // Optional: keep or filter works
-      // data.works = data.works.filter((w: any) => w.cat !== name);
-      savePortfolioData(data);
+      await savePortfolioData(data);
       return NextResponse.json({ success: true, categories: data.categories, works: data.works });
     }
 
@@ -105,53 +133,20 @@ export async function POST(request: Request) {
       const { id, src } = body;
       data.works = data.works.filter((w: WorkItem) => w.id !== id && w.src !== src);
 
-      // 1. If Supabase storage file, delete from Supabase Storage
+      // If Supabase storage file, delete from Supabase Storage
       if (src && src.includes("/storage/v1/object/public/gallery/")) {
         try {
           const parts = src.split("/storage/v1/object/public/gallery/");
           if (parts[1]) {
             const storagePath = decodeURIComponent(parts[1]);
-            const { data: delData, error: delErr } = await supabase.storage
-              .from("gallery")
-              .remove([storagePath]);
-            if (delErr) {
-              console.error("Supabase Storage remove error:", delErr.message);
-            } else {
-              console.log("Successfully deleted from Supabase Storage:", storagePath, delData);
-            }
-
-            // Also clean up local file if present in public/uploads/
-            const filename = path.basename(storagePath);
-            const localUploadPath = path.join(process.cwd(), "public", "uploads", filename);
-            if (fs.existsSync(localUploadPath)) {
-              fs.unlinkSync(localUploadPath);
-            }
+            await supabase.storage.from("gallery").remove([storagePath]);
           }
         } catch (e) {
           console.error("Failed to delete from Supabase storage:", e);
         }
-      } else if (src && src.startsWith("/uploads/")) {
-        // If local uploaded file, attempt to delete from disk
-        try {
-          const filePath = path.join(process.cwd(), "public", src);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
-        } catch (e) {
-          console.error("Failed to delete file from disk:", e);
-        }
       }
 
-      // 2. Also delete from Supabase Database table 'portfolio_works' if table exists
-      try {
-        if (id) {
-          await supabase.from("portfolio_works").delete().eq("id", id);
-        }
-      } catch (dbErr) {
-        // Ignored if table does not exist
-      }
-
-      savePortfolioData(data);
+      await savePortfolioData(data);
       return NextResponse.json({ success: true, works: data.works });
     }
 

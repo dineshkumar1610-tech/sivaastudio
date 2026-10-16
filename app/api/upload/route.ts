@@ -21,24 +21,59 @@ interface PortfolioData {
 
 const dataFilePath = path.join(process.cwd(), "data", "portfolio.json");
 
-function getPortfolioData() {
+// Read portfolio from Supabase Storage first, fallback to local file
+async function getPortfolioData(): Promise<PortfolioData> {
+  try {
+    const { data: fileData, error } = await supabase.storage
+      .from("gallery")
+      .download("metadata/portfolio.json");
+
+    if (!error && fileData) {
+      const text = await fileData.text();
+      return JSON.parse(text);
+    }
+  } catch (err) {
+    console.warn("Could not fetch portfolio from Supabase storage, using fallback:", err);
+  }
+
+  // Local fallback
   try {
     if (fs.existsSync(dataFilePath)) {
       const content = fs.readFileSync(dataFilePath, "utf8");
       return JSON.parse(content);
     }
   } catch (error) {
-    console.error("Error reading portfolio data:", error);
+    console.error("Error reading local portfolio data:", error);
   }
+
   return { categories: [], works: [] };
 }
 
-function savePortfolioData(data: PortfolioData) {
-  const dir = path.dirname(dataFilePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+// Save portfolio to Supabase Storage, and safely attempt local disk write if writable
+async function savePortfolioData(data: PortfolioData): Promise<void> {
+  // 1. Persist to Supabase Storage (always works in serverless/Vercel)
+  try {
+    const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf8");
+    await supabase.storage
+      .from("gallery")
+      .upload("metadata/portfolio.json", jsonBuffer, {
+        contentType: "application/json",
+        upsert: true,
+      });
+  } catch (sbErr) {
+    console.warn("Could not persist portfolio to Supabase storage:", sbErr);
   }
-  fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf8");
+
+  // 2. Best-effort local file write (works in local dev, gracefully ignored on Vercel)
+  try {
+    const dir = path.dirname(dataFilePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), "utf8");
+  } catch {
+    // Read-only filesystem on Vercel serverless — safe to ignore
+  }
 }
 
 export async function POST(request: Request) {
@@ -53,18 +88,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
     }
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    const data = getPortfolioData();
+    const data = await getPortfolioData();
     if (!data.categories.includes(category)) {
       data.categories.push(category);
       data.categories.sort((a: string, b: string) => a.localeCompare(b));
     }
 
-    const uploadedWorks = [];
+    const uploadedWorks: WorkItem[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -78,9 +108,8 @@ export async function POST(request: Request) {
         .replace(/[^a-zA-Z0-9_-]/g, "_");
       const ext = path.extname(file.name) || ".jpg";
       const filename = `${Date.now()}-${i}-${safeBaseName}${ext}`;
-      const filePath = path.join(uploadsDir, filename);
 
-      // Optimize with sharp: normalize colorspace to sRGB, orient, resize, and compress
+      // Optimize with sharp: normalize colorspace to sRGB, resize, and compress
       let uploadBuffer = buffer;
       let isTall = i % 2 === 0;
       let contentType = file.type || "image/jpeg";
@@ -98,35 +127,45 @@ export async function POST(request: Request) {
           .toBuffer();
         contentType = "image/jpeg";
       } catch (sharpErr) {
-        console.warn("Sharp optimization failed, using original buffer:", sharpErr);
+        console.warn("Sharp optimization skipped, using original buffer:", sharpErr);
       }
 
-      fs.writeFileSync(filePath, uploadBuffer);
-
-      // Upload to Supabase Storage ('gallery' bucket)
-      let src = `/uploads/${filename}`;
+      // Best-effort local file write (works locally, ignored on Vercel)
       try {
-        const safeCatFolder = category.replace(/[^a-zA-Z0-9_-]/g, "_");
-        const storagePath = `${safeCatFolder}/${filename}`;
-        const { error: uploadError } = await supabase.storage
-          .from("gallery")
-          .upload(storagePath, uploadBuffer, {
-            contentType,
-            upsert: true,
-          });
-
-        if (!uploadError) {
-          const { data: publicData } = supabase.storage
-            .from("gallery")
-            .getPublicUrl(storagePath);
-          if (publicData?.publicUrl) {
-            src = publicData.publicUrl;
-          }
-        } else {
-          console.warn("Supabase storage upload failed, using local file:", uploadError.message);
+        const uploadsDir = path.join(process.cwd(), "public", "uploads");
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
         }
-      } catch (sbErr) {
-        console.warn("Supabase upload exception, using local file:", sbErr);
+        fs.writeFileSync(path.join(uploadsDir, filename), uploadBuffer);
+      } catch {
+        // Read-only filesystem on Vercel
+      }
+
+      // Upload directly to Supabase Storage ('gallery' bucket)
+      let src = `/uploads/${filename}`;
+      const safeCatFolder = category.replace(/[^a-zA-Z0-9_-]/g, "_");
+      const storagePath = `${safeCatFolder}/${filename}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("gallery")
+        .upload(storagePath, uploadBuffer, {
+          contentType,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        console.error("Supabase storage upload error:", uploadError);
+        throw new Error(
+          `Supabase upload failed: ${uploadError.message}. Make sure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set in Vercel Environment Variables.`
+        );
+      }
+
+      const { data: publicData } = supabase.storage
+        .from("gallery")
+        .getPublicUrl(storagePath);
+
+      if (publicData?.publicUrl) {
+        src = publicData.publicUrl;
       }
 
       // AI title according to image & category
@@ -135,7 +174,7 @@ export async function POST(request: Request) {
           ? customTitle.trim()
           : generateAiTitle(category, file.name, isTall);
 
-      const newWork = {
+      const newWork: WorkItem = {
         id: `up-${Date.now()}-${i}`,
         src,
         title: title || `${category} #${data.works.length + 1}`,
@@ -145,10 +184,10 @@ export async function POST(request: Request) {
       };
 
       uploadedWorks.push(newWork);
-      data.works.unshift(newWork); // Add to beginning so newly uploaded appears first!
+      data.works.unshift(newWork);
     }
 
-    savePortfolioData(data);
+    await savePortfolioData(data);
 
     return NextResponse.json({
       success: true,
