@@ -27,7 +27,7 @@ const dataFilePath = path.join(process.cwd(), "data", "portfolio.json");
 async function getPortfolioData(): Promise<PortfolioData> {
   try {
     const { data: fileData, error } = await supabase.storage
-      .from("gallery")
+      .from("Sivaa Studio")
       .download("metadata/portfolio.json");
 
     if (!error && fileData) {
@@ -57,7 +57,7 @@ async function savePortfolioData(data: PortfolioData): Promise<void> {
   try {
     const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf8");
     await supabase.storage
-      .from("gallery")
+      .from("Sivaa Studio")
       .upload("metadata/portfolio.json", jsonBuffer, {
         contentType: "application/json",
         upsert: true,
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
       const storagePath = `${safeCatFolder}/${filename}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("gallery")
+        .from("Sivaa Studio")
         .upload(storagePath, uploadBuffer, {
           contentType,
           upsert: true,
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
       }
 
       const { data: publicData } = supabase.storage
-        .from("gallery")
+        .from("Sivaa Studio")
         .getPublicUrl(storagePath);
 
       if (publicData?.publicUrl) {

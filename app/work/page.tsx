@@ -436,7 +436,7 @@ export default function Work() {
 
         // Upload directly from browser to Supabase Storage
         const { error: uploadError } = await supabase.storage
-          .from("gallery")
+          .from("Sivaa Studio")
           .upload(storagePath, file, {
             contentType: file.type || "image/jpeg",
             upsert: true,
@@ -448,7 +448,7 @@ export default function Work() {
 
         // Get public URL
         const { data: publicData } = supabase.storage
-          .from("gallery")
+          .from("Sivaa Studio")
           .getPublicUrl(storagePath);
 
         const src = publicData?.publicUrl || storagePath;

@@ -25,7 +25,7 @@ const dataFilePath = path.join(process.cwd(), "data", "portfolio.json");
 async function getPortfolioData(): Promise<PortfolioData> {
   try {
     const { data: fileData, error } = await supabase.storage
-      .from("gallery")
+      .from("Sivaa Studio")
       .download("metadata/portfolio.json");
 
     if (!error && fileData) {
@@ -64,7 +64,7 @@ async function savePortfolioData(data: PortfolioData): Promise<void> {
   try {
     const jsonBuffer = Buffer.from(JSON.stringify(data, null, 2), "utf8");
     await supabase.storage
-      .from("gallery")
+      .from("Sivaa Studio")
       .upload("metadata/portfolio.json", jsonBuffer, {
         contentType: "application/json",
         upsert: true,
@@ -153,12 +153,12 @@ export async function POST(request: Request) {
       data.works = data.works.filter((w: WorkItem) => w.id !== id && w.src !== src);
 
       // If Supabase storage file, delete from Supabase Storage
-      if (src && src.includes("/storage/v1/object/public/gallery/")) {
+      if (src && src.includes("/storage/v1/object/public/Sivaa Studio/")) {
         try {
-          const parts = src.split("/storage/v1/object/public/gallery/");
+          const parts = src.split("/storage/v1/object/public/Sivaa Studio/");
           if (parts[1]) {
             const storagePath = decodeURIComponent(parts[1]);
-            await supabase.storage.from("gallery").remove([storagePath]);
+            await supabase.storage.from("Sivaa Studio").remove([storagePath]);
           }
         } catch (e) {
           console.error("Failed to delete from Supabase storage:", e);
