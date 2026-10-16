@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import sharp from "sharp";
 import { generateAiTitle } from "@/lib/aiTitle";
 import { supabase } from "@/lib/supabase";
 
@@ -118,7 +117,8 @@ export async function POST(request: Request) {
       let contentType = file.type || "image/jpeg";
 
       try {
-        const pipeline = sharp(buffer).rotate();
+        const sharpModule = (await import("sharp")).default;
+        const pipeline = sharpModule(buffer).rotate();
         const meta = await pipeline.metadata();
         if (meta.width && meta.height) {
           isTall = meta.height > meta.width;

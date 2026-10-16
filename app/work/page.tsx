@@ -426,24 +426,26 @@ export default function Work() {
 
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const result = await res.json();
-        if (result.allWorks) setWorks(result.allWorks);
-        else if (result.uploadedWorks) setWorks((prev) => [...result.uploadedWorks, ...prev]);
-        if (result.categories) setCategories(result.categories);
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        // Response is plain text or HTML
+      }
+
+      if (res.ok && data) {
+        if (data.allWorks) setWorks(data.allWorks);
+        else if (data.uploadedWorks) setWorks((prev) => [...data.uploadedWorks, ...prev]);
+        if (data.categories) setCategories(data.categories);
         setUploadModalOpen(false);
         setSelectedFiles([]);
         setUploadTitle("");
         showStatus(`${selectedFiles.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
       } else {
-        let errorMsg = "Upload failed";
-        try {
-          const errData = await res.json();
-          errorMsg = errData.error || errorMsg;
-        } catch {
-          const raw = await res.text();
-          if (raw) errorMsg = raw.slice(0, 120);
-        }
+        const errorMsg =
+          data?.error ||
+          (rawText && rawText.length < 150 ? rawText : `Server error (Status ${res.status})`);
         showStatus(errorMsg, "error");
       }
     } catch (err: unknown) {
