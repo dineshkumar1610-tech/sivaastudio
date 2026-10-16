@@ -427,7 +427,12 @@ export default function Work() {
     try {
       const res = await fetch("/api/upload", { method: "POST", body: formData });
       const rawText = await res.text();
-      let data: any = null;
+      let data: {
+        allWorks?: WorkItem[];
+        uploadedWorks?: WorkItem[];
+        categories?: string[];
+        error?: string;
+      } | null = null;
       try {
         data = JSON.parse(rawText);
       } catch {
@@ -435,8 +440,12 @@ export default function Work() {
       }
 
       if (res.ok && data) {
-        if (data.allWorks) setWorks(data.allWorks);
-        else if (data.uploadedWorks) setWorks((prev) => [...data.uploadedWorks, ...prev]);
+        if (data.allWorks) {
+          setWorks(data.allWorks);
+        } else if (data.uploadedWorks) {
+          const newItems = data.uploadedWorks;
+          setWorks((prev) => [...newItems, ...prev]);
+        }
         if (data.categories) setCategories(data.categories);
         setUploadModalOpen(false);
         setSelectedFiles([]);
