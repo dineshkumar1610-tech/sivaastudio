@@ -422,7 +422,57 @@ export default function Work() {
     }
   };
 
-  // Upload files handler — sends files via multipart FormData to /api/upload
+  // Client-side image compression to stay well under Vercel's 4.5MB request limit
+  const compressImageForUpload = async (file: File): Promise<File> => {
+    if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.size < 800 * 1024) {
+      return file;
+    }
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const maxDim = 2560;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(file);
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || blob.size >= file.size) {
+              return resolve(file);
+            }
+            const compressed = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressed);
+          },
+          "image/jpeg",
+          0.85
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+      img.src = objectUrl;
+    });
+  };
+
+  // Upload files handler — compresses images and sends each one safely to stay under Vercel limits
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedFiles.length === 0) return;
@@ -430,40 +480,58 @@ export default function Work() {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      for (const file of selectedFiles) {
-        formData.append("files", file);
-      }
-      formData.append("category", selectedAdminCategory);
-      formData.append("year", new Date().getFullYear().toString());
-      if (uploadTitle.trim() && selectedFiles.length === 1) {
-        formData.append("title", uploadTitle.trim());
+      const newUploaded: WorkItem[] = [];
+
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const originalFile = selectedFiles[i];
+        if (selectedFiles.length > 1) {
+          showStatus(`Uploading ${i + 1} of ${selectedFiles.length}...`);
+        } else {
+          showStatus("Optimizing and uploading photo...");
+        }
+
+        const fileToUpload = await compressImageForUpload(originalFile);
+
+        const formData = new FormData();
+        formData.append("files", fileToUpload);
+        formData.append("category", selectedAdminCategory);
+        formData.append("year", new Date().getFullYear().toString());
+        if (uploadTitle.trim() && selectedFiles.length === 1) {
+          formData.append("title", uploadTitle.trim());
+        }
+
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const rawText = await res.text();
+        let data: { success?: boolean; uploadedWorks?: WorkItem[]; allWorks?: WorkItem[]; categories?: string[]; error?: string } | null = null;
+        try { data = JSON.parse(rawText); } catch { /* ignore */ }
+
+        if (!res.ok || data?.error) {
+          const errMsg =
+            data?.error ||
+            (res.status === 413
+              ? "File too large for server payload limit. Please select a smaller photo."
+              : `Upload failed (Status ${res.status})`);
+          throw new Error(errMsg);
+        }
+
+        if (data?.uploadedWorks) {
+          newUploaded.push(...data.uploadedWorks);
+        }
+        if (data?.categories) setCategories(data.categories);
       }
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const rawText = await res.text();
-      let data: { success?: boolean; uploadedWorks?: WorkItem[]; allWorks?: WorkItem[]; categories?: string[]; error?: string } | null = null;
-      try { data = JSON.parse(rawText); } catch { /* ignore */ }
-
-      if (!res.ok || data?.error) {
-        throw new Error(data?.error || "Upload failed");
+      if (newUploaded.length > 0) {
+        setWorks((prev) => [...newUploaded, ...prev]);
       }
-
-      if (data?.allWorks) {
-        setWorks(data.allWorks);
-      } else if (data?.uploadedWorks) {
-        setWorks((prev) => [...(data!.uploadedWorks as WorkItem[]), ...prev]);
-      }
-      if (data?.categories) setCategories(data.categories);
 
       setUploadModalOpen(false);
       setSelectedFiles([]);
       setUploadTitle("");
-      showStatus(`${selectedFiles.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
+      showStatus(`${selectedFiles.length} photo(s) uploaded successfully to "${selectedAdminCategory}"!`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Upload failed. Please check your connection.";
       showStatus(msg, "error");

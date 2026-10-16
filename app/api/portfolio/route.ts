@@ -48,6 +48,7 @@ function getPortfolioData(): PortfolioData {
 
 // Save portfolio to local file
 function savePortfolioData(data: PortfolioData): void {
+  if (process.env.VERCEL) return;
   try {
     const dir = path.dirname(dataFilePath);
     if (!fs.existsSync(dir)) {

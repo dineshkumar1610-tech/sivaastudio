@@ -38,6 +38,7 @@ function getPortfolioData(): PortfolioData {
 
 // Save portfolio to local file
 function savePortfolioData(data: PortfolioData): void {
+  if (process.env.VERCEL) return;
   try {
     const dir = path.dirname(dataFilePath);
     if (!fs.existsSync(dir)) {
@@ -67,9 +68,16 @@ export async function POST(request: Request) {
       data.categories.sort((a: string, b: string) => a.localeCompare(b));
     }
 
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+    const isVercel = Boolean(process.env.VERCEL);
+
+    if (isVercel && !isSupabaseConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "Supabase is not configured on Vercel. Please add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your Vercel Project Settings > Environment Variables.",
+        },
+        { status: 500 }
+      );
     }
 
     const uploadedWorks: WorkItem[] = [];
@@ -87,7 +95,7 @@ export async function POST(request: Request) {
       const ext = path.extname(file.name) || ".jpg";
       const filename = `${Date.now()}-${i}-${safeBaseName}${ext}`;
 
-      // Optimize with sharp: normalize colorspace to sRGB, resize, and compress
+      // Optimize with sharp if available: normalize colorspace to sRGB, resize, and compress
       let uploadBuffer = buffer;
       let isTall = i % 2 === 0;
       let contentType = file.type || "image/jpeg";
@@ -109,15 +117,21 @@ export async function POST(request: Request) {
         console.warn("Sharp optimization skipped, using original buffer:", sharpErr);
       }
 
-      // Save to local public/uploads as backup/cache
       const outputFilename = contentType === "image/jpeg" && !filename.endsWith(".jpg")
         ? filename.replace(/\.[^/.]+$/, ".jpg")
         : filename;
 
-      try {
-        fs.writeFileSync(path.join(uploadsDir, outputFilename), uploadBuffer);
-      } catch (localErr) {
-        console.warn("Could not save local file backup:", localErr);
+      // Only attempt local disk write if NOT running on Vercel (read-only filesystem)
+      if (!isVercel) {
+        try {
+          const uploadsDir = path.join(process.cwd(), "public", "uploads");
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          fs.writeFileSync(path.join(uploadsDir, outputFilename), uploadBuffer);
+        } catch (localErr) {
+          console.warn("Could not save local file backup:", localErr);
+        }
       }
 
       let src = `/uploads/${outputFilename}`;
@@ -139,6 +153,9 @@ export async function POST(request: Request) {
 
             if (uploadError) {
               console.error("Supabase storage upload error:", uploadError.message);
+              if (isVercel) {
+                throw new Error(`Supabase Storage upload failed: ${uploadError.message}`);
+              }
             } else {
               const { data: publicUrlData } = supabase.storage
                 .from(supabaseBucket)
@@ -149,7 +166,10 @@ export async function POST(request: Request) {
               }
             }
           } catch (supErr) {
-            console.error("Failed to upload to Supabase, fell back to local file:", supErr);
+            console.error("Failed to upload to Supabase:", supErr);
+            if (isVercel) {
+              throw supErr;
+            }
           }
         }
       }
