@@ -436,11 +436,19 @@ export default function Work() {
         setUploadTitle("");
         showStatus(`${selectedFiles.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
       } else {
-        const error = await res.json();
-        showStatus(error?.error || "Upload failed", "error");
+        let errorMsg = "Upload failed";
+        try {
+          const errData = await res.json();
+          errorMsg = errData.error || errorMsg;
+        } catch {
+          const raw = await res.text();
+          if (raw) errorMsg = raw.slice(0, 120);
+        }
+        showStatus(errorMsg, "error");
       }
-    } catch {
-      showStatus("Upload failed. Please check server logs.", "error");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Upload request failed. Please check network.";
+      showStatus(msg, "error");
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

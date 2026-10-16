@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 interface WorkItem {
   id?: string;
   src: string;

@@ -5,6 +5,9 @@ import sharp from "sharp";
 import { generateAiTitle } from "@/lib/aiTitle";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
 interface WorkItem {
   id?: string;
   src: string;
