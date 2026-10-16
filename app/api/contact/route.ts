@@ -28,7 +28,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const webhookUrl = process.env.GOOGLE_SHEET_WEBAPP_URL;
+    const webhookUrl =
+      process.env.GOOGLE_SHEET_WEBAPP_URL ||
+      "https://script.google.com/macros/s/AKfycbyFjknqPXWMl6_g1tVrIDFEmKONvFEDdi4LIXJ73LQ2GD9flnBsk0Fc1CMRNN6YPpBL/exec";
 
     // 1. Fire-and-forget to Google Sheet — does NOT block the response
     if (webhookUrl) {
