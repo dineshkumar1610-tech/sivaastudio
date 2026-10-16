@@ -21,6 +21,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { generateAiTitle } from "@/lib/aiTitle";
+import { supabase } from "@/lib/supabase";
 
 interface WorkItem {
   id?: string;
@@ -413,52 +414,88 @@ export default function Work() {
     }
   };
 
-  // Upload files handler
+  // Upload files handler — uploads directly from browser to Supabase Storage
+  // (bypasses Vercel serverless timeout & sharp binary issues)
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedFiles.length === 0) return;
 
     setUploading(true);
-    const formData = new FormData();
-    selectedFiles.forEach((file) => formData.append("files", file));
-    formData.append("category", selectedAdminCategory);
-    formData.append("title", uploadTitle);
+    const uploadedWorks: WorkItem[] = [];
 
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const rawText = await res.text();
-      let data: {
-        allWorks?: WorkItem[];
-        uploadedWorks?: WorkItem[];
-        categories?: string[];
-        error?: string;
-      } | null = null;
-      try {
-        data = JSON.parse(rawText);
-      } catch {
-        // Response is plain text or HTML
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const safeBaseName = file.name
+          .replace(/\.[^/.]+$/, "")
+          .replace(/[^a-zA-Z0-9_-]/g, "_");
+        const ext = file.name.includes(".") ? file.name.split(".").pop() || "jpg" : "jpg";
+        const filename = `${Date.now()}-${i}-${safeBaseName}.${ext}`;
+        const safeCatFolder = selectedAdminCategory.replace(/[^a-zA-Z0-9_-]/g, "_");
+        const storagePath = `${safeCatFolder}/${filename}`;
+
+        // Upload directly from browser to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from("gallery")
+          .upload(storagePath, file, {
+            contentType: file.type || "image/jpeg",
+            upsert: true,
+          });
+
+        if (uploadError) {
+          throw new Error(`Upload failed: ${uploadError.message}`);
+        }
+
+        // Get public URL
+        const { data: publicData } = supabase.storage
+          .from("gallery")
+          .getPublicUrl(storagePath);
+
+        const src = publicData?.publicUrl || storagePath;
+        const title =
+          uploadTitle && selectedFiles.length === 1 && uploadTitle.trim()
+            ? uploadTitle.trim()
+            : generateAiTitle(selectedAdminCategory, file.name);
+
+        const newWork: WorkItem = {
+          id: `up-${Date.now()}-${i}`,
+          src,
+          title: title || `${selectedAdminCategory} #${i + 1}`,
+          year: new Date().getFullYear().toString(),
+          cat: selectedAdminCategory,
+          tall: false,
+        };
+        uploadedWorks.push(newWork);
       }
 
-      if (res.ok && data) {
-        if (data.allWorks) {
-          setWorks(data.allWorks);
-        } else if (data.uploadedWorks) {
-          const newItems = data.uploadedWorks;
-          setWorks((prev) => [...newItems, ...prev]);
-        }
-        if (data.categories) setCategories(data.categories);
-        setUploadModalOpen(false);
-        setSelectedFiles([]);
-        setUploadTitle("");
-        showStatus(`${selectedFiles.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
+      // Save metadata via lightweight API route (no file processing, just JSON update)
+      const res = await fetch("/api/portfolio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_works",
+          works: uploadedWorks,
+          category: selectedAdminCategory,
+        }),
+      });
+
+      const rawText = await res.text();
+      let data: { works?: WorkItem[]; categories?: string[]; error?: string } | null = null;
+      try { data = JSON.parse(rawText); } catch { /* ignore */ }
+
+      if (data?.works) {
+        setWorks(data.works);
       } else {
-        const errorMsg =
-          data?.error ||
-          (rawText && rawText.length < 150 ? rawText : `Server error (Status ${res.status})`);
-        showStatus(errorMsg, "error");
+        setWorks((prev) => [...uploadedWorks, ...prev]);
       }
+      if (data?.categories) setCategories(data.categories);
+
+      setUploadModalOpen(false);
+      setSelectedFiles([]);
+      setUploadTitle("");
+      showStatus(`${uploadedWorks.length} photo(s) uploaded to "${selectedAdminCategory}"!`);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Upload request failed. Please check network.";
+      const msg = err instanceof Error ? err.message : "Upload failed. Please check your connection.";
       showStatus(msg, "error");
     } finally {
       setUploading(false);

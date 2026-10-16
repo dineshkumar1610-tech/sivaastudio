@@ -95,6 +95,23 @@ export async function POST(request: Request) {
     const { action } = body;
     const data = await getPortfolioData();
 
+    if (action === "add_works") {
+      const { works: newWorks, category } = body;
+      if (!Array.isArray(newWorks) || newWorks.length === 0) {
+        return NextResponse.json({ error: "No works provided" }, { status: 400 });
+      }
+      // Add category if not present
+      const cat = (category || "").trim();
+      if (cat && !data.categories.includes(cat)) {
+        data.categories.push(cat);
+        data.categories.sort((a: string, b: string) => a.localeCompare(b));
+      }
+      // Prepend new works
+      data.works = [...newWorks, ...data.works];
+      await savePortfolioData(data);
+      return NextResponse.json({ success: true, works: data.works, categories: data.categories });
+    }
+
     if (action === "add_category") {
       const { name } = body;
       const trimmed = (name || "").trim();
