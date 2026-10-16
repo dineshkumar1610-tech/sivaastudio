@@ -1,0 +1,404 @@
+{
+  "categories": [
+    "Baby Shoot",
+    "Engagement shoot",
+    "Pre-Wedding",
+    "Profile shoot",
+    "Seemantham",
+    "Wedding"
+  ],
+  "works": [
+    {
+      "id": "up-1790878530262-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/1790878530238-0-07_jpg.jpeg",
+      "title": "Sacred Vows",
+      "year": "2026",
+      "cat": "Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-15",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01607.JPG.jpeg",
+      "title": "Enchanted Moments",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "up-1790878330360-1",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/1790878330309-1-SSS01906_JPG.jpeg",
+      "title": "Golden Hour Reverie",
+      "year": "2026",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "up-1790878330288-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/1790878330195-0-SSS01934_JPG.jpeg",
+      "title": "In Your Arms",
+      "year": "2026",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "up-1790878272783-5",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272772-5-DSC01322_jpg.jpeg",
+      "title": "Soulful Promise",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790878272769-4",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272758-4-DSC01507_jpg.jpeg",
+      "title": "Gaze of Forever",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790878272756-3",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272745-3-DSC01531_jpg.jpeg",
+      "title": "Soulful Promise",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790878272742-2",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272728-2-A92I2564_jpg.jpeg",
+      "title": "Soulful Promise",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790878272724-1",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272704-1-A92I1975_jpg.jpeg",
+      "title": "Hand in Hand",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790878272697-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Engagement_shoot/1790878272667-0-A92I2561_jpg.jpeg",
+      "title": "Soulful Promise",
+      "year": "2026",
+      "cat": "Engagement shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877821889-5",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821887-5-WhatsApp_Image_2026-10-01_at_1_30_07_PM.jpeg",
+      "title": "Essence of Beauty",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": false
+    },
+    {
+      "id": "up-1790877821886-4",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821882-4-WhatsApp_Image_2026-10-01_at_1_30_06_PM.jpeg",
+      "title": "The Living Canvas",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877821882-3",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821880-3-WhatsApp_Image_2026-10-01_at_1_30_06_PM__1_.jpeg",
+      "title": "Luminous Moments",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": false
+    },
+    {
+      "id": "up-1790877821879-2",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821875-2-WhatsApp_Image_2026-10-01_at_1_29_46_PM.jpeg",
+      "title": "The Living Canvas",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877821875-1",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821873-1-122334.jpeg",
+      "title": "Radiant Story",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": false
+    },
+    {
+      "id": "up-1790877821872-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Profile_shoot/1790877821860-0-3422.jpeg",
+      "title": "The Living Canvas",
+      "year": "2026",
+      "cat": "Profile shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877620689-7",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620686-7-maternity_enhanced_1.png",
+      "title": "Serene Radiance",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": false
+    },
+    {
+      "id": "up-1790877620685-6",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620681-6-maternity_enhanced_2.jpeg",
+      "title": "Tender Expectation",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": false
+    },
+    {
+      "id": "up-1790877620679-5",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620675-5-maternity_enhanced_3.png",
+      "title": "A Mother's Grace",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": false
+    },
+    {
+      "id": "up-1790877620673-4",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620670-4-maternity_enhanced_4.png",
+      "title": "Radiant Bloom",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "up-1790877620669-3",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620665-3-maternity_enhanced_5.jpeg",
+      "title": "Radiant Bloom",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "up-1790877620663-2",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620660-2-maternity_enhanced_6.png",
+      "title": "Radiant Bloom",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "up-1790877620659-1",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620656-1-maternity_enhanced_7.png",
+      "title": "A Mother's Grace",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "up-1790877620655-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/1790877620636-0-maternity_enhanced_8.png",
+      "title": "Radiant Bloom",
+      "year": "2026",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420325-7",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420322-7-WhatsApp_Image_2026-10-01_at_12_55_30_PM.jpeg",
+      "title": "Angelic Grace",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420322-6",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420319-6-WhatsApp_Image_2026-10-01_at_12_55_29_PM.jpeg",
+      "title": "Little Miracle",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420319-5",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420315-5-WhatsApp_Image_2026-10-01_at_12_55_28_PM.jpeg",
+      "title": "Soft Whispers",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420315-4",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420311-4-WhatsApp_Image_2026-10-01_at_12_55_28_PM__5_.jpeg",
+      "title": "Precious Soul",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420311-3",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420308-3-WhatsApp_Image_2026-10-01_at_12_55_28_PM__4_.jpeg",
+      "title": "Little Wonder",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "up-1790877420308-2",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420304-2-WhatsApp_Image_2026-10-01_at_12_55_28_PM__3_.jpeg",
+      "title": "Warm Embrace",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": false
+    },
+    {
+      "id": "up-1790877420304-1",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420301-1-WhatsApp_Image_2026-10-01_at_12_55_28_PM__2_.jpeg",
+      "title": "Seraphic Light",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": false
+    },
+    {
+      "id": "up-1790877420301-0",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Baby_Shoot/1790877420218-0-WhatsApp_Image_2026-10-01_at_12_55_28_PM__1_.jpeg",
+      "title": "Tiny Footprints",
+      "year": "2026",
+      "cat": "Baby Shoot",
+      "tall": true
+    },
+    {
+      "id": "w-2",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS00987.JPG.jpeg",
+      "title": "Sunlit Romance",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-5",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Seemantham/SSS09685.JPG.jpeg",
+      "title": "A Mother's Grace",
+      "year": "2024",
+      "cat": "Seemantham",
+      "tall": true
+    },
+    {
+      "id": "w-6",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01259.JPG.jpeg",
+      "title": "Together in Bliss",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-8",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07749.JPG.jpeg",
+      "title": "Holy Union",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-10",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01402.JPG.jpeg",
+      "title": "Whispering Winds",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-11",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07752.JPG.jpeg",
+      "title": "Temple Blessings",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": true
+    },
+    {
+      "id": "w-12",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01590.JPG.jpeg",
+      "title": "Eternal Bond",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-13",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07775.JPG.jpeg",
+      "title": "Ceremonial Joy",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-14",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07780.JPG.jpeg",
+      "title": "Traditional Elegance",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": true
+    },
+    {
+      "id": "w-17",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01617.JPG.jpeg",
+      "title": "Serenade",
+      "year": "2024",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-18",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07823.JPG.jpeg",
+      "title": "Festive Rituals",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": true
+    },
+    {
+      "id": "w-19",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07833.JPG.jpeg",
+      "title": "Auspicious Moments",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-20",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS01963.JPG.jpeg",
+      "title": "Timeless Embrace",
+      "year": "2023",
+      "cat": "Pre-Wedding",
+      "tall": true
+    },
+    {
+      "id": "w-23",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Pre-Wedding/SSS02004.JPG.jpeg",
+      "title": "Golden Horizon",
+      "year": "2023",
+      "cat": "Pre-Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-27",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07943.JPG.jpeg",
+      "title": "Grand Celebration",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": false
+    },
+    {
+      "id": "w-28",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07978.JPG.jpeg",
+      "title": "Graceful Twirl",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": true
+    },
+    {
+      "id": "w-29",
+      "src": "https://fsgtqraeluphacvikeus.supabase.co/storage/v1/object/public/gallery/Wedding/DSC07992.JPG.jpeg",
+      "title": "Everlasting Story",
+      "year": "2024",
+      "cat": "Wedding",
+      "tall": false
+    }
+  ]
+}
